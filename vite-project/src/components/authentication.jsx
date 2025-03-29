@@ -78,26 +78,18 @@ function Authentication() {
   const handleSignInWithGoogle = async () => {
     setError('');
     setLoading(true);
-  
+
     try {
       const userCredential = await signInWithPopup(auth, googleProvider);
       setUser(userCredential.user);
       setSuccess(true);
     } catch (error) {
-      console.error("Google Sign-In Error:", error.code, error.message);
-      
-      if (error.code === "auth/popup-closed-by-user") {
-        setError("Google Sign-In popup was closed before completing.");
-      } else if (error.code === "auth/network-request-failed") {
-        setError("Network error. Check your connection.");
-      } else {
-        setError("Google Sign-In failed. Try again.");
-      }
+      console.error(error);
+      setError('Google Sign-In failed');
     } finally {
       setLoading(false);
     }
   };
-  
 
   const handleSignIn = async (e) => {
     e.preventDefault();

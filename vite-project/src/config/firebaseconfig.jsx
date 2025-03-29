@@ -3,13 +3,13 @@ import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore"; // Import Firestore
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBRm3LihgVNB0DvAiQlWOkemHZzOspcQMc",
-  authDomain: "hustlehub-daa03.firebaseapp.com",
-  projectId: "hustlehub-daa03",
-  storageBucket: "hustlehub-daa03.appspot.com",
-  messagingSenderId: "967580487335",
-  appId: "1:967580487335:web:432d0017f1d94ee7935582",
-  measurementId: "G-NDSZLEQTHW"
+  apiKey: import.meta.env.VITE_API_KEY,
+  authDomain: import.meta.env.VITE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_APP_ID,
+  measurementId: import.meta.env.VITE_MEASUREMENT_ID,
 };
 
 const app = initializeApp(firebaseConfig);
