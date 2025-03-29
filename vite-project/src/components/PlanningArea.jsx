@@ -4,9 +4,11 @@ import { AiOutlineQrcode } from 'react-icons/ai';
 import { motion, AnimatePresence } from 'framer-motion';
 import { db, auth } from '../config/firebaseconfig';
 import { collection, addDoc, getDocs, deleteDoc, doc, query, where } from 'firebase/firestore';
-import { signOut } from 'firebase/auth';
+import { signOut, onAuthStateChanged } from 'firebase/auth';
 import { Timer } from 'lucide-react';
 import FocusZoneComponent from './FocusZoneComponent'; 
+import HustleHubFooter from './Footer';
+import Authentication from './authentication';
 
 
 const PlanningArea = () => {
@@ -20,12 +22,41 @@ const PlanningArea = () => {
   const [showQRModal, setShowQRModal] = useState(false);
   const [isInFocusMode, setIsInFocusMode] = useState(false);
   const [qrCodeData, setQRCodeData] = useState('');
+  const [user, setUser] = useState(null);
 
   // -------------- FETCH TASKS & QUOTE --------------
- useEffect(() => {
-  fetchRandomQuote();
-  fetchUserTasks();
-}, []);
+  useEffect(() => {
+    fetchRandomQuote();
+    
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      if (currentUser) {
+        fetchUserTasks();
+      }
+    });
+    return () => unsubscribe(); // Cleanup on unmount
+  }, []);
+
+  // Fetch random quote function
+  const fetchRandomQuote = () => {
+    const MOTIVATIONAL_QUOTES = [
+      {
+        content: "Success is not final, failure is not fatal: it is the courage to continue that counts.",
+        author: "Winston Churchill"
+      },
+      {
+        content: "Believe you can and you're halfway there.",
+        author: "Theodore Roosevelt"
+      },
+      {
+        content: "The only way to do great work is to love what you do.",
+        author: "Steve Jobs"
+      }
+    ];
+
+    const randomIndex = Math.floor(Math.random() * MOTIVATIONAL_QUOTES.length);
+    setQuote(MOTIVATIONAL_QUOTES[randomIndex]);
+  };
 
   // ---- Fetch tasks for the logged-in user only ----
   const fetchUserTasks = async () => {
@@ -45,26 +76,6 @@ const PlanningArea = () => {
       console.error('Error fetching user tasks:', error);
     }
   };
-
-const fetchRandomQuote = () => {
-  const MOTIVATIONAL_QUOTES = [
-    {
-      content: "Success is not final, failure is not fatal: it is the courage to continue that counts.",
-      author: "Winston Churchill"
-    },
-    {
-      content: "Believe you can and you're halfway there.",
-      author: "Theodore Roosevelt"
-    },
-    {
-      content: "The only way to do great work is to love what you do.",
-      author: "Steve Jobs"
-    }
-  ];
-
-  const randomIndex = Math.floor(Math.random() * MOTIVATIONAL_QUOTES.length);
-  setQuote(MOTIVATIONAL_QUOTES[randomIndex]);
-};
 
   // -------------- ADD TASK --------------
   const handleAddTask = async (e) => {
@@ -173,13 +184,19 @@ ${task.description ? `Description: ${task.description}` : ''}
     }
   };
 
+  // This should come after all hooks and function definitions
+  if (!user) {
+    return <Authentication />;
+  }
+
   // ------------------- UI STARTS HERE (NO CHANGES) -------------------
   return (
     <>
      {isInFocusMode ? (
       <FocusZoneComponent onExit={() => setIsInFocusMode(false)} />
     ) : (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-[#4361ee] py-10">
+      <>
+      <div className="min-h-screen bg-gradient-to-br pb-44 from-indigo-50 to-[#4361ee] py-10">
         <div className="container mx-auto px-4 max-w-6xl">
         <motion.header
           initial={{ opacity: 0, y: -50 }}
@@ -291,7 +308,11 @@ ${task.description ? `Description: ${task.description}` : ''}
                       <div>
                         <h3 className="text-lg font-semibold mb-1">{task.title}</h3>
                         <p className="text-sm text-gray-600 mb-1">
-                          {new Date(task.dueDate).toDateString()}
+                          {task.dueDate instanceof Date 
+                            ? task.dueDate.toDateString() 
+                            : (task.dueDate && task.dueDate.toDate) 
+                              ? task.dueDate.toDate().toDateString() 
+                              : new Date(task.dueDate).toDateString()}
                         </p>
                         {task.description && (
                           <p className="text-sm text-gray-500 italic">{task.description}</p>
@@ -393,27 +414,32 @@ ${task.description ? `Description: ${task.description}` : ''}
           )}
         </AnimatePresence>
 
-       {/* Sign Out and Focus Zone Buttons */}
-<div className="text-center mt-10 flex justify-center space-x-4">
-  <button
-    onClick={handleSignOut}
-    className="bg-purple-600 text-white px-6 py-2 rounded-xl hover:bg-red-600 transition-colors"
-  >
-    Sign Out
-  </button>
-  <button
-    onClick={() => setIsInFocusMode(true)}
-    className="bg-blue-500 text-white px-6 py-2 rounded-xl hover:bg-blue-600 transition-colors flex items-center space-x-2"
-  >
-    <Timer className="mr-2" />
-    Enter Focus Zone
-  </button>
-  </div>
+        {/* Sign Out and Focus Zone Buttons */}
+        <div className="text-center mt-10 flex justify-center space-x-4">
+          <button
+            onClick={handleSignOut}
+            className="bg-purple-600 text-white px-6 py-2 rounded-xl hover:bg-red-600 transition-colors"
+          >
+            Sign Out
+          </button>
+          <button
+            onClick={() => setIsInFocusMode(true)}
+            className="bg-blue-500 text-white px-6 py-2 rounded-xl hover:bg-blue-600 transition-colors flex items-center space-x-2"
+          >
+            <Timer className="mr-2" />
+            Enter Focus Zone
+          </button>
+        </div>
         </div>
       </div>
+          <div className=''>
+          <HustleHubFooter/>
+      
+          </div>
+          </>
     )}
   </>
-)};
-
+);
+};
 
 export default PlanningArea;

@@ -77,6 +77,19 @@ const FocusZoneComponent = ({ onExit }) => {
     const [isFinished, setIsFinished] = useState(false);
     const [backgroundColor, setBackgroundColor] = useState('bg-purple-900');
     const [userId, setUserId] = useState('');
+    const [focusTextColor, setFocusTextColor] = useState('#FFFFFF');
+    const [userNotes, setUserNotes] = useState('');
+  
+    // List of hex colors for focus text
+    const focusColors = [
+      '#FF5733', // Red-orange
+      '#33FF57', // Green
+      '#3357FF', // Blue
+      '#F033FF', // Purple
+      '#FF33F0', // Pink
+      '#33FFF0', // Cyan
+      '#FFFF33'  // Yellow
+    ];
   
     useEffect(() => {
       // Fetch current user from Firebase Authentication
@@ -95,6 +108,16 @@ const FocusZoneComponent = ({ onExit }) => {
       }
       return () => clearInterval(intervalId);
     }, [startTime, isRunning, isPaused]);
+  
+    // Color change effect for FOCUS NOW text
+    useEffect(() => {
+      const colorIntervalId = setInterval(() => {
+        const randomColor = focusColors[Math.floor(Math.random() * focusColors.length)];
+        setFocusTextColor(randomColor);
+      }, 3000);
+      
+      return () => clearInterval(colorIntervalId);
+    }, []);
   
     const formatTime = (totalMilliseconds) => {
       const hours = Math.floor(totalMilliseconds / 3600000);
@@ -182,23 +205,34 @@ const FocusZoneComponent = ({ onExit }) => {
           </div>
         </div>
 
-        {/* FOCUS NOW!!! text */}
-        <div className="flex-grow flex items-center justify-center z-10">
+        {/* FOCUS NOW!!! text with user ID below it */}
+        <div className="flex-grow flex items-center justify-center flex-col z-10">
           <motion.div 
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="text-white text-9xl font-bold opacity-20 text-center"
+            className="text-9xl font-bold opacity-20 text-center"
+            style={{ color: focusTextColor }}
           >
             FOCUS NOW!!!
           </motion.div>
+          {userId && (
+            <div className="text-lg text-white opacity-70 mt-4">
+              It's time to focus, {userId}!!!
+            </div>
+          )}
         </div>
 
-        {/* User identification */}
-        {userId && (
-          <div className="absolute top-4 right-4 text-sm text-white opacity-70 text-right z-10">
-            It's time to focus, {userId}!!!
-          </div>
-        )}
+        {/* Notes box in bottom left */}
+        <div className="absolute bottom-4 left-4 z-10 w-64">
+          <textarea
+            value={userNotes}
+            onChange={(e) => setUserNotes(e.target.value)}
+            placeholder="Add quick notes here..."
+            className="w-full p-2 rounded-md text-black"
+            style={{ backgroundColor: '#FFFFC0' }} // Light yellow background
+            rows={3}
+          />
+        </div>
 
         {/* Buttons at the bottom */}
         <div className="pb-10 flex justify-center space-x-4 z-10">
